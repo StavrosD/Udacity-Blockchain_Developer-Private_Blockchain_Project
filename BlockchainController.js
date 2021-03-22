@@ -123,13 +123,11 @@ class BlockchainController {
      // This endpoint validates the chain blocks
      validateChain() {
         this.app.get("/validateChain", async (req, res) => {
-            try {
-                let errors = await this.blockchain.validateChain();
-    
+            let errors = await this.blockchain.validateChain();
+            if (errors.length == 0) {
                 return res.status(200).send("All blocks validated successfully!");    
-            }
-            catch {
-                return res.status(404).send("Errors in blockchain!\r\n" + errors.join("\r\n"));
+            } else {
+                return res.status(500).send("Errors in blockchain!\r\n" + errors.join("\r\n"));
             }
         });
     }
