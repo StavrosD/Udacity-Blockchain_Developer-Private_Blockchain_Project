@@ -37,10 +37,9 @@ class Blockchain {
         
 
         if( this.height === -1){
+            this.height = 0;
             let block = new BlockClass.Block({data: 'Genesis Block'});
-            block.height = 0;
             this.chain.height = 1;
-            
             await this._addBlock(block);
         }
     }
@@ -84,7 +83,8 @@ class Blockchain {
         // add block to chain
         this.chain.push(block);
         this.height = this.chain.length ;  
-        if (!this.validateChain()){
+        let validationErrors =  await this.validateChain();
+        if (validationErrors.length > 0){
             reject("Error: Cannot validate chain!");
         };
         resolve(block);
@@ -151,7 +151,7 @@ class Blockchain {
     getBlockByHash(hash) {
         let self = this;
         return new Promise((resolve, reject) => {
-            var result = this.chain.filter(block => block.hash == hash);
+            var result = this.chain.find(block => block.hash == hash);
             if (result.length == 0){  // no match found
                 resolve(result[0]);
             } else {
@@ -203,23 +203,20 @@ class Blockchain {
     validateChain() {
         let self = this;
         let errorLog = [];
-        return new Promise(async (resolve, reject) => {
-            this.chain.forEach(p => {
-                if (p.height >0){ // skip Genesis block
-                    if (!p.validate()){ // validate block
-                        errorLog.push("Invalid block: #" + p.height + " - Validation failed!")
-                    }
+        return new Promise(async (resolve) => {
+            this.chain.forEach(async p => {
+                let validationStatus = await p.validate();
+                if ( validationStatus != true ){ // validate block
+                    errorLog.push("Invalid block: #" + p.height + " - Validation failed!")
+                }
+                if (p.height > 0){ // skip Genesis block
                     if (p.previousBlockHash != this.chain[p.height-1].hash){ // test if the previousBlockHash mathes the hash of the previous block
                         errorLog.push("Invalid block: #" + p.height + " - previous block hash does not match!");
                     }
                 }
             })
-            if (errorLog.length == 0) {
-                resolve();
-            } else {
-                reject(errorLog);
-            }
-            
+                resolve(errorLog);
+        
         });
     }
 }

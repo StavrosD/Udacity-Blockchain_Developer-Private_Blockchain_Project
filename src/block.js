@@ -38,7 +38,7 @@ class Block {
      */
     validate() {
         let self = this;
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve) => {
             // Save in auxiliary variable the current block hash
             let hash = this.hash;   // store the existing hash
             // Recalculate the hash of the Block
@@ -53,7 +53,7 @@ class Block {
             // Returning the Block is valid
                 resolve(true);
             }
-
+            
         });
     }
 
